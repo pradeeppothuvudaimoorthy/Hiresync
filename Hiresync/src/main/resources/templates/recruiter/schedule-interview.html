@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Interview - HireSync</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="brand">
+                <i class="bi bi-briefcase-fill me-2" style="color: var(--primary-color);"></i>HireSync
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/dashboard}" class="sidebar-menu-link">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/jobs/post}" class="sidebar-menu-link">
+                        <i class="bi bi-plus-circle me-2"></i>Post a Job
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/jobs}" class="sidebar-menu-link">
+                        <i class="bi bi-list-task me-2"></i>Manage Jobs
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/applications}" class="sidebar-menu-link">
+                        <i class="bi bi-people me-2"></i>Applicants List
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/shortlisted}" class="sidebar-menu-link active">
+                        <i class="bi bi-star me-2"></i>Shortlisted Candidates
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/interviews}" class="sidebar-menu-link">
+                        <i class="bi bi-calendar-event me-2"></i>Interview Schedule
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a th:href="@{/recruiter/profile}" class="sidebar-menu-link">
+                        <i class="bi bi-person-gear me-2"></i>Company Profile
+                    </a>
+                </li>
+                <li class="sidebar-menu-item mt-4">
+                    <form th:action="@{/logout}" method="post" class="px-3">
+                        <button type="submit" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <div>
+                    <h2 class="fw-bold mb-0">Schedule Interview</h2>
+                    <p class="text-muted small mb-0">Define interview round details for applicant: <span class="fw-bold text-dark" th:text="${application.candidate.user.name}">John Doe</span></p>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row g-4" style="max-width: 900px;">
+                <!-- Summary Card -->
+                <div class="col-md-4">
+                    <div class="card card-custom p-3 bg-white h-100">
+                        <h6 class="fw-bold text-indigo border-bottom pb-2 mb-3">Application Summary</h6>
+                        <p class="mb-1 text-muted small">Applicant Name</p>
+                        <p class="fw-bold mb-3 text-dark" th:text="${application.candidate.user.name}">John Doe</p>
+                        
+                        <p class="mb-1 text-muted small">Job Title</p>
+                        <p class="fw-bold mb-3 text-dark" th:text="${application.job.title}">Senior Java Developer</p>
+                        
+                        <p class="mb-1 text-muted small">AI Screening Match Score</p>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge badge-match" 
+                                  th:classappend="${application.matchStatus == 'High Match' ? 'match-high' : (application.matchStatus == 'Medium Match' ? 'match-medium' : 'match-low')}"
+                                  th:text="${application.matchScore != null ? application.matchScore + '%' : '0%'}">80%</span>
+                            <span class="text-muted small fw-semibold" th:text="${application.matchStatus}">High Match</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Form -->
+                <div class="col-md-8">
+                    <div class="card card-custom p-4 bg-white">
+                        <form th:action="@{/recruiter/interviews/schedule/{id}(id=${application.id})}" method="post">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="interviewDate" class="form-label fw-semibold text-muted small">Interview Date *</label>
+                                    <input type="date" class="form-control" id="interviewDate" name="interviewDate" 
+                                           th:value="${interview.interviewDate}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="interviewTime" class="form-label fw-semibold text-muted small">Interview Time *</label>
+                                    <input type="time" class="form-control" id="interviewTime" name="interviewTime" 
+                                           th:value="${interview.interviewTime}" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mode" class="form-label fw-semibold text-muted small">Interview Mode *</label>
+                                <select class="form-select" id="mode" name="mode" required onchange="toggleModeFields()">
+                                    <option value="Online" th:selected="${interview.mode == 'Online'}">Online (e.g. Google Meet, Zoom)</option>
+                                    <option value="Offline" th:selected="${interview.mode == 'Offline'}">Offline (In-Person Office)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4" id="meetingLinkField">
+                                <label for="meetingLink" class="form-label fw-semibold text-muted small">Meeting Link</label>
+                                <input type="url" class="form-control" id="meetingLink" name="meetingLink" 
+                                       th:value="${interview.meetingLink}" placeholder="https://meet.google.com/abc-defg-hij">
+                            </div>
+
+                            <div class="mb-4 d-none" id="locationField">
+                                <label for="location" class="form-label fw-semibold text-muted small">Office Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       th:value="${interview.location}" placeholder="e.g. 5th Floor, Building A, Silicon Valley">
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/recruiter/shortlisted}" class="btn btn-outline-secondary px-4">Cancel</a>
+                                <button type="submit" class="btn btn-primary-custom px-4">Save Schedule</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- UI toggle Script -->
+    <script>
+        function toggleModeFields() {
+            const mode = document.getElementById("mode").value;
+            const meetingLinkField = document.getElementById("meetingLinkField");
+            const locationField = document.getElementById("locationField");
+
+            if (mode === "Online") {
+                meetingLinkField.classList.remove("d-none");
+                locationField.classList.add("d-none");
+            } else {
+                meetingLinkField.classList.add("d-none");
+                locationField.classList.remove("d-none");
+            }
+        }
+
+        // Run toggle on load
+        document.addEventListener("DOMContentLoaded", toggleModeFields);
+    </script>
+</body>
+</html>
